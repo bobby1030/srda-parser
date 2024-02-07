@@ -1,11 +1,28 @@
+import re
+from datetime import datetime
+
 import pandas as pd
 from docx import Document
 
-from .models import ParsedTable
+from .models import ParsedTable, Data, Variable
 
 
-def extract_tables_from_docx(file_path):
-    doc = Document(file_path)
+def extract_title_from_document(doc: Document):
+    # assume title is the first paragraph
+    title = doc.paragraphs[0].text
+    return title
+
+
+def extract_date_from_document(doc: Document):
+    # assume title is the first paragraph
+    title = doc.paragraphs[0].text
+
+    # extract date from title
+    year = int(re.findall(r"(\d{2,3})年", title)[0]) + 1911
+    return year
+
+
+def extract_tables_from_document(doc: Document):
     tables = doc.tables
     return tables
 
@@ -35,7 +52,7 @@ def parse_docx_table(table):
             if len(row_data) > 0 and cell.text == row_data[-1]:
                 pass  # left merge cells with duplicated content
             else:
-                row_data.append(cell.text)
+                row_data.append(cell.text.strip())
 
         # truncate row_data to match header length
         row_data = row_data[: len(header)]
@@ -47,16 +64,37 @@ def parse_docx_table(table):
             common_title = (row_data[0], row_data[1])  # (q_id, common_title)
         else:
             # is not a common title row
-            description_idx = header.index(
-                "變項說明"
-            )  # get the position of variable description
+            # get the position of variable description
+            description_idx = header.index("變項說明")  
             if row_data[0] == common_title[0]:
                 # same q_id as common title
                 row_data[description_idx] = common_title[1] + row_data[description_idx]
 
             # skip rows that served as separators
             if len(row_data) > 1:
+                # right pad row_data to match header length
+                row_data += [""] * (len(header) - len(row_data))
+
                 table_data.append(row_data)
 
     pt = ParsedTable(header, table_data)
     return pt
+
+
+def read_srda_docx(file_path, title=None, description=None, date=None):
+    doc = Document(file_path)
+
+    # construct Data object 
+    data = Data()
+    data.title = title or extract_title_from_document(doc)
+    data.description = description
+    data.date = date or extract_date_from_document(doc)
+
+    # extract variable informations from parsed codebook
+    tables = extract_tables_from_document(doc)
+    parsed_codebook = parse_docx_table(tables[0])  # first table is the codebook
+
+    # construct Variable objects
+    data.variables = parsed_codebook.to_variable_list()
+
+    return data

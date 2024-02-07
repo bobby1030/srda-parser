@@ -10,28 +10,27 @@ class ParsedTable:
         self.header = header
         self.tabledata = tabledata
 
-        self.normalize_header()
-
     def to_frame(self):
         """
         Convert the parsed table to a pandas DataFrame
         """
         return pd.DataFrame(self.tabledata, columns=self.header)
-    
-    def normalize_header(self):
+
+    def to_variable_list(self):
         """
-        Normalize the header by:
-        1. mapping chinese header string to english header
+        Convert the parsed table to a list of Variable objects
         """
-        header_dict = {
-            "題號": "q_id",
-            "變項名稱": "name",
-            "卡數/欄位定義": "field",
-            "變項說明": "description",
-            "選項數值說明": "values",
-            "備註": "note",
-        }
-        self.header = [header_dict[h] for h in self.header]
+        variable_list = []
+        for row in self.tabledata:
+            variable = Variable()
+            variable.q_id = row[0]
+            variable.name = row[1]
+            variable.field = row[2]
+            variable.description = row[3]
+            variable.values = row[4]
+            variable.note = row[5]
+            variable_list.append(variable)
+        return variable_list
 
 
 class Data:
@@ -48,8 +47,11 @@ class Variable:
         self.name = None
         self.field = None
         self.description = None
-        self.values = []
+        self.values = None
         self.note = None
+
+    def __repr__(self):
+        return f"Variable({self.name}, {self.description})"
 
 
 class Value:
