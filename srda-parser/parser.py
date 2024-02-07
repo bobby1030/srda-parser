@@ -1,6 +1,8 @@
 import pandas as pd
 from docx import Document
 
+from .models import ParsedTable
+
 
 def extract_tables_from_docx(file_path):
     doc = Document(file_path)
@@ -18,7 +20,8 @@ def parse_docx_tables(table):
         if cellidx > 0 and header_cells[cellidx].text == header_cells[cellidx - 1].text:
             pass  # left merge cells with duplicated header
         else:
-            header.append(header_cells[cellidx].text)
+            text = header_cells[cellidx].text.replace("\n", "")
+            header.append(text)
 
     # init a variable to store running common title
     common_title = (None, None)  # (q_id, common_title)
@@ -55,5 +58,5 @@ def parse_docx_tables(table):
             if len(row_data) > 1:
                 table_data.append(row_data)
 
-    df = pd.DataFrame(table_data, columns=header)
-    return df
+    pt = ParsedTable(header, table_data)
+    return pt
