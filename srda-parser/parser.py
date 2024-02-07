@@ -10,7 +10,7 @@ def extract_tables_from_docx(file_path):
     return tables
 
 
-def parse_docx_tables(table):
+def parse_docx_table(table):
     table_data = []
 
     # construct header from the first row
