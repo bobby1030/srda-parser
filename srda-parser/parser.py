@@ -8,14 +8,16 @@ from .models import ParsedTable, Data, Variable
 
 
 def extract_title_from_document(doc: Document):
-    # assume title is the first paragraph
-    title = doc.paragraphs[0].text
-    return title
+    # greedily extract the first paragraph
+    for paragraph in doc.paragraphs:
+        if len(paragraph.text) > 0:
+            title = paragraph.text
+            return title
 
 
 def extract_date_from_document(doc: Document):
     # assume title is the first paragraph
-    title = doc.paragraphs[0].text
+    title = extract_title_from_document(doc)
 
     # extract date from title
     year = int(re.findall(r"(\d{2,3})年", title)[0]) + 1911
@@ -57,6 +59,9 @@ def parse_docx_table(table):
         # truncate row_data to match header length
         row_data = row_data[: len(header)]
 
+        # skip empty rows
+        if len(row_data) == 0: continue
+
         # identify rows that served as common title for following rows
         # and rollover the title to the next row
         if row_data[0] != "" and len(row_data) > 1 and len(row_data) < len(header) - 1:
@@ -65,7 +70,7 @@ def parse_docx_table(table):
         else:
             # is not a common title row
             # get the position of variable description
-            description_idx = header.index("變項說明")  
+            description_idx = header.index("變項說明")
             if row_data[0] == common_title[0]:
                 # same q_id as common title
                 row_data[description_idx] = common_title[1] + row_data[description_idx]
@@ -84,7 +89,7 @@ def parse_docx_table(table):
 def read_srda_docx(file_path, title=None, description=None, date=None):
     doc = Document(file_path)
 
-    # construct Data object 
+    # construct Data object
     data = Data()
     data.title = title or extract_title_from_document(doc)
     data.description = description
