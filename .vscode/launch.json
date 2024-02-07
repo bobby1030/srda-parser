@@ -1,0 +1,16 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Pass sample codebook into argv[1]",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "srda-parser.test",
+            "console": "integratedTerminal",
+            "args": "${workspaceFolder}/resources/mu_codebook/code75.docx"
+        }
+    ]
+}
