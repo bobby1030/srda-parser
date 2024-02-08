@@ -5,6 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Backend: db.createdb",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "backend.db.createdb",
+            "console": "integratedTerminal"
+        },
+        {
             "name": "Debug cli",
             "type": "debugpy",
             "request": "launch",
