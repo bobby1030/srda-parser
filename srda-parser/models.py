@@ -42,9 +42,8 @@ class Data:
         self.date = None
         self.variables = []
 
-    def to_json(self, filename=None):
-        with open(filename, "w") as f:
-            json.dump(self, f, default=lambda o: o.__dict__, sort_keys=True, indent=4, ensure_ascii=False)
+    def to_json(self):
+        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4, ensure_ascii=False)            
 
 class Variable:
     def __init__(self):
