@@ -38,5 +38,3 @@ def docx_to_json(input_file, output=None):
 
 if __name__ == "__main__":
     docx_to_json()
-
-pathlib.Path.open
