@@ -5,12 +5,24 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Pass sample codebook into argv[1]",
+            "name": "Debug cli",
             "type": "debugpy",
             "request": "launch",
-            "module": "srda-parser.test",
+            "module": "srda-parser.cli",
             "console": "integratedTerminal",
-            "args": "${workspaceFolder}/resources/mu_codebook/code75.docx"
+            "args": [
+                "${workspaceFolder}/resources/mu_codebook/code83.docx",
+                "-o",
+                "${workspaceFolder}/resources/mu_codebook/out/code9487.json"
+            ]
+        },
+        {
+            "name": "Debug renamer",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "srda-parser.renamer",
+            "console": "integratedTerminal",
+            "args": "${workspaceFolder}/resources/mu_codebook/out/code85.json"
         }
     ]
 }
