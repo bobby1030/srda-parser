@@ -4,6 +4,8 @@ from sqlalchemy import text
 from .database import engine, Session
 from .models import Base, Codebook, Variable
 
+from .. import logger
+
 # Directories with json files ready to load into the database
 INPUT_DIR = ["resources/mu_codebook/out/"]
 
@@ -21,6 +23,8 @@ def read_json_codebook(dir):
 
 
 def createdb():
+    logger.info("Building database schema and loading data...")
+
     # enable vector extension
     with Session() as session:
         session.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
