@@ -1,7 +1,7 @@
 import os
 
 from sqlalchemy import create_engine, URL
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy_utils import database_exists, create_database
 
 db_url = URL.create(
@@ -27,3 +27,4 @@ def get_db_engine():
 
 engine = get_db_engine()
 Session = sessionmaker(bind=engine)
+ScopedSession = scoped_session(Session)
