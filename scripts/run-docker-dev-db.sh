@@ -6,4 +6,4 @@ docker run \
     -e POSTGRES_PASSWORD=srdatest \
     -p 5432:5432 \
     -d \
-    postgres
+    pgvector/pgvector:pg16
