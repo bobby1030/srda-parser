@@ -23,7 +23,7 @@ class Variable(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     codebook_id: Mapped[int] = mapped_column(ForeignKey(Codebook.id))
-    codebook: Mapped[Codebook] = relationship(Codebook, backref="variables")
+    codebook: Mapped[Codebook] = relationship(Codebook, backref="variables", order_by=Codebook.date.asc())
     description: Mapped[Optional[str]]
     field: Mapped[Optional[str]]
     name: Mapped[str]

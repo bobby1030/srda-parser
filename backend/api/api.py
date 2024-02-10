@@ -1,7 +1,7 @@
-from flask import Flask
+from flask import Flask, jsonify
 from flask import request as req
 from sqlalchemy import select, or_
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, contains_eager
 
 from ..db.models import Codebook, Variable
 from ..db.database import ScopedSession
@@ -30,13 +30,25 @@ def get_variables():
     return variables
 
 
+@api.get("/api/variables/<variableid>")
+def get_variable(variableid):
+    session = ScopedSession()
+    query = select(Variable).where(Variable.id == variableid)
+    variable = session.scalars(query).one()
+
+    return jsonify(variable)
+
+
 @api.get("/api/variables/search/<search_term>")
 def search_variable(search_term):
     session = ScopedSession()
-    query = select(Variable).where(
-        or_(
-            Variable.name.ilike(f"%{search_term}%"),
-            Variable.description.ilike(f"%{search_term}%"),
+    query = (
+        select(Variable)
+        .where(
+            or_(
+                Variable.name.ilike(f"%{search_term}%"),
+                Variable.description.ilike(f"%{search_term}%"),
+            )
         )
     )
     variables = session.scalars(query).all()
@@ -57,7 +69,6 @@ def similar_variable(variableid):
 
     query_similar = (
         select(Variable)
-        .options(joinedload(Variable.codebook))
         .order_by(Variable.embedding.l2_distance(vec))
         .limit(limit)
         .offset(offset)
