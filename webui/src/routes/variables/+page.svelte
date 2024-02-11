@@ -21,8 +21,7 @@
 		search_term = e.target.value;
 
 		// Reset offset
-		let limit = 10;
-		let offset = 0;
+		offset = 0;
 
 		loadData(search_term, limit, offset).then((res) => {
 			data.variables = res;
