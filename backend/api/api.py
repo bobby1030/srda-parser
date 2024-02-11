@@ -1,7 +1,11 @@
+import os
+from functools import lru_cache
+
 from flask import Flask, jsonify
 from flask import request as req
 from sqlalchemy import select, or_
 from sqlalchemy.orm import joinedload, contains_eager
+import openai
 
 from ..db.models import Codebook, Variable
 from ..db.database import ScopedSession
@@ -39,6 +43,11 @@ def get_variable(variableid):
 
         return jsonify(variable)
 
+@lru_cache
+def get_openai_embedding(search_term):
+    client = openai.OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+    response = client.embeddings.create(input=search_term, model="text-embedding-3-small")
+    return response.data[0].embedding
 
 @api.get("/api/variables/search/<search_term>")
 def search_variable(search_term):
@@ -46,12 +55,12 @@ def search_variable(search_term):
     offset = req.args.get("offset", 0)
 
     with ScopedSession() as session:
-        query = select(Variable).where(
-            or_(
-                Variable.name.ilike(f"%{search_term}%"),
-                Variable.description.ilike(f"%{search_term}%"),
-            )
-        ).limit(limit).offset(offset)
+        query = (
+            select(Variable)
+            .order_by(Variable.embedding.l2_distance(get_openai_embedding(search_term)), Variable.id)
+            .limit(limit)
+            .offset(offset)
+        )
         variables = session.scalars(query).all()
 
         return jsonify(variables)

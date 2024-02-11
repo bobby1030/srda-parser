@@ -1,41 +1,50 @@
 <script>
 	import { goto, preloadData } from '$app/navigation';
 	import { Input } from '$lib/components/ui/input';
+	import { Select, SelectTrigger, SelectContent, SelectItem, SelectInput, SelectValue } from '$lib/components/ui/select';
 	import { debounce } from 'lodash-es';
 	import { Table, TableRow, TableHead, TableHeader, TableCell } from '$lib/components/ui/table';
 	import { Button } from '$lib/components/ui/button';
 
 	export let data;
 
+	let search_term = '';
 	let limit = 10;
 	let offset = 0;
 
-	let handleSearch = debounce((e) => {
-		let search_term = e.target.value;
+	let loadData = async (term = '', limit, offset) => {
+		const url = `/api/variables/search/${term}?offset=${offset}&limit=${limit}`;
+		return fetch(url).then((res) => res.json());
+	}
 
-		const url = `/api/variables/search/${search_term}?limit=${limit}`;
-		fetch(url)
-			.then((res) => res.json())
-			.then((res) => {
-				data.variables = res;
-			});
+	let handleSearch = debounce((e) => {
+		search_term = e.target.value;
+
+		// Reset offset
+		let limit = 10;
+		let offset = 0;
+
+		loadData(search_term, limit, offset).then((res) => {
+			data.variables = res;
+			offset += parseInt(limit);
+		});
 	}, 300);
 
 	let handleLoadMore = () => {
-		offset += 10;
-		const url = `/api/variables/?offset=${offset}`;
-		fetch(url)
-			.then((res) => res.json())
-			.then((res) => {
-				data.variables = data.variables.concat(res);
-			});
+		loadData(search_term, limit, offset).then((res) => {
+			data.variables = data.variables.concat(res);
+			offset += parseInt(limit);
+		});
 	};
 </script>
 
-<h1 class="text-2xl my-3">Variables</h1>
+<h1 class="my-3 text-2xl">Variables</h1>
 
 <form class="my-3">
-	<Input on:input={handleSearch} type="text" placeholder="Find variables..." name="term" />
+	<div class="flex">
+		<Input on:input={handleSearch} type="text" placeholder="Find variables... (Fuzzy semantic search supported)" name="term" />
+		<Input class="ml-3 w-1/12" type="number" bind:value={limit}/>
+	</div>
 </form>
 
 <Table>
@@ -66,6 +75,6 @@
 	{/each}
 </Table>
 
-<div class="flex justify-center my-5">
+<div class="my-5 flex justify-center">
 	<Button variant="outline" class="mx-auto" on:click={handleLoadMore}>Load more</Button>
 </div>
