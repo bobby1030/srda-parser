@@ -42,13 +42,16 @@ def get_variable(variableid):
 
 @api.get("/api/variables/search/<search_term>")
 def search_variable(search_term):
+    limit = req.args.get("limit", 10)
+    offset = req.args.get("offset", 0)
+
     with ScopedSession() as session:
         query = select(Variable).where(
             or_(
                 Variable.name.ilike(f"%{search_term}%"),
                 Variable.description.ilike(f"%{search_term}%"),
             )
-        )
+        ).limit(limit).offset(offset)
         variables = session.scalars(query).all()
 
         return jsonify(variables)
