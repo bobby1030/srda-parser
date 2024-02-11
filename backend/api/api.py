@@ -19,6 +19,7 @@ def get_codebooks():
 
 
 @api.get("/api/variables/")
+@api.get("/api/variables/search/") # fallback for empty search term
 def get_variables():
     offset = req.args.get("offset", 0)
     limit = req.args.get("limit", 10)

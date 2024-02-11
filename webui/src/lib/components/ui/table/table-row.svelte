@@ -12,6 +12,8 @@
 	{...$$restProps}
 	on:click
 	on:keydown
+	on:focus
+	on:mouseover
 >
 	<slot />
 </tr>

@@ -1,5 +1,5 @@
 <script>
-	import { goto } from '$app/navigation';
+	import { goto, preloadData } from '$app/navigation';
 	import { Input } from '$lib/components/ui/input';
 	import { debounce } from 'lodash-es';
 	import { Table, TableRow, TableHead, TableHeader, TableCell } from '$lib/components/ui/table';
@@ -15,7 +15,7 @@
 			.then((res) => {
 				data.variables = res;
 			});
-	}, 400);
+	}, 300);
 </script>
 
 <h1 class="text-2xl">Variables</h1>
@@ -36,7 +36,7 @@
 	</TableHeader>
 
 	{#each data.variables as variable}
-		<TableRow class="hover:cursor-pointer" on:click={goto(`/variables/${variable.id}`)}>
+		<TableRow class="hover:cursor-pointer" on:click={goto(`/variables/${variable.id}`)} on:mouseover={preloadData(`/variables/${variable.id}`)}>
 			<TableCell>{variable.codebook.title}</TableCell>
 			<TableCell>{variable.codebook.date}</TableCell>
 			<TableCell
