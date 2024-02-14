@@ -16,11 +16,26 @@ api = Flask(__name__)
 @api.get("/api/codebooks/")
 def get_codebooks():
     with ScopedSession() as session:
-        query = select(Codebook)
+        query = select(Codebook).order_by(Codebook.date)
         codebooks = session.scalars(query).all()
 
-        return codebooks
+        return jsonify(codebooks)
 
+@api.get("/api/codebooks/<int:codebookid>")
+def get_codebook(codebookid):
+    with ScopedSession() as session:
+        query = select(Codebook).where(Codebook.id == codebookid)
+        codebook = session.scalars(query).one()
+
+        results = {
+            "id": codebook.id,
+            "title": codebook.title,
+            "date": codebook.date,
+            "description": codebook.description,
+            "variables": sorted([variable for variable in codebook.variables], key=lambda x: x.id),
+        }
+
+        return jsonify(results)
 
 @api.get("/api/variables/")
 @api.get("/api/variables/search/") # fallback for empty search term
@@ -82,6 +97,26 @@ def similar_variable(variableid):
             .order_by(Variable.embedding.l2_distance(vec))
             .limit(limit)
             .offset(offset)
+        )
+
+        similar_variables = session.scalars(query_similar).all()
+
+        return jsonify(similar_variables)
+
+@api.get("/api/variables/similar/across-codebooks/<variableid>")
+def similar_variable_across_codebooks(variableid):
+    with ScopedSession() as session:
+        query = select(Variable).where(Variable.id == variableid)
+        variable = session.scalars(query).one()
+
+        vec = variable.embedding
+
+        query_similar = (
+            select(Variable)
+            .join(Variable.codebook)
+            .distinct(Codebook.date, Variable.codebook_id)
+            .filter(Variable.codebook_id != variable.codebook_id)
+            .order_by(Codebook.date, Variable.codebook_id, Variable.embedding.l2_distance(vec))
         )
 
         similar_variables = session.scalars(query_similar).all()

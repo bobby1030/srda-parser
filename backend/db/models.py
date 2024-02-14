@@ -1,7 +1,13 @@
 from typing import Optional
 
 from sqlalchemy import ForeignKey
-from sqlalchemy.orm import DeclarativeBase, MappedAsDataclass, Mapped, mapped_column, relationship
+from sqlalchemy.orm import (
+    DeclarativeBase,
+    MappedAsDataclass,
+    Mapped,
+    mapped_column,
+    relationship,
+)
 from pgvector.sqlalchemy import Vector
 
 
@@ -23,7 +29,7 @@ class Variable(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     codebook_id: Mapped[int] = mapped_column(ForeignKey(Codebook.id))
-    codebook: Mapped[Codebook] = relationship(Codebook, backref="variables", order_by=Codebook.date.asc())
+    codebook: Mapped[Codebook] = relationship(backref="variables")
     description: Mapped[Optional[str]]
     field: Mapped[Optional[str]]
     name: Mapped[str]
