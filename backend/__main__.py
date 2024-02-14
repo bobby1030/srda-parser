@@ -11,9 +11,10 @@ if not check_db_exist():
     createdb()
 elif os.environ.get("REBUILD_DB") == "1":
     logger.info("Rebuild of database requested")
-    createdb()
+    createdb(destroy=True)
 else:
     logger.info("Database found")
+    createdb()
 
 # fill embeddings
 logger.info("Requesting embeddings...")

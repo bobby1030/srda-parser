@@ -27,9 +27,9 @@ class Codebook(Base):
 class Variable(Base):
     __tablename__ = "variable"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(init=False, primary_key=True, autoincrement=True)
     codebook_id: Mapped[int] = mapped_column(ForeignKey(Codebook.id))
-    codebook: Mapped[Codebook] = relationship(backref="variables")
+    codebook: Mapped[Codebook] = relationship(init=False, backref="variables")
     description: Mapped[Optional[str]]
     field: Mapped[Optional[str]]
     name: Mapped[str]

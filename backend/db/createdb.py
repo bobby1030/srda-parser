@@ -1,6 +1,6 @@
 import json, pathlib
 
-from sqlalchemy import text
+from sqlalchemy import text, select, func
 from .database import engine, Session
 from .models import Base, Codebook, Variable
 
@@ -22,7 +22,7 @@ def read_json_codebook(dir):
     return [read(file) for file in input_files]
 
 
-def createdb():
+def createdb(destroy=False):
     logger.info("Building database schema and loading data...")
 
     # enable vector extension
@@ -31,34 +31,42 @@ def createdb():
         session.commit()
 
     # build schema
-    Base.metadata.drop_all(engine)
+    if destroy:
+        Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
 
     # load codebook and variables into database
     with Session() as session:
         json_codebooks = read_json_codebook(INPUT_DIR[0])
+        
+        if session.execute(select(func.count()).select_from(Codebook)).scalar() == len(json_codebooks):
+            logger.info("Database already contains identical data. Skipping load.")
+            return False
+        else:
+            logger.info("Database's content does not match the input data.")
+            logger.info("Loading data into database...")
 
-        for idx, codebook in enumerate(json_codebooks):
-            codebook_id = idx + 1
-            codebook_row = Codebook(
-                id=codebook_id,
-                title=codebook["title"],
-                date=codebook["date"],
-                description=codebook["description"],
-            )
-            session.add(codebook_row)
-
-            for variable in codebook["variables"]:
-                variable_row = Variable(
-                    codebook_id=codebook_id,
-                    description=variable["description"],
-                    field=variable["field"],
-                    name=variable["name"],
-                    note=variable["note"],
-                    q_id=variable["q_id"],
-                    values=variable["values"],
+            for idx, codebook in enumerate(json_codebooks):
+                codebook_id = idx + 1
+                codebook_row = Codebook(
+                    id=codebook_id,
+                    title=codebook["title"],
+                    date=codebook["date"],
+                    description=codebook["description"],
                 )
-                session.add(variable_row)
+                session.add(codebook_row)
 
-        # commit changes
-        session.commit()
+                for variable in codebook["variables"]:
+                    variable_row = Variable(
+                        codebook_id=codebook_id,
+                        description=variable["description"],
+                        field=variable["field"],
+                        name=variable["name"],
+                        note=variable["note"],
+                        q_id=variable["q_id"],
+                        values=variable["values"],
+                    )
+                    session.add(variable_row)
+
+            # commit changes
+            session.commit()

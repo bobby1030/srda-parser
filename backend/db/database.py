@@ -1,8 +1,10 @@
-import os
+import os, time
 
+from .. import logger
 from sqlalchemy import create_engine, URL
 from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy_utils import database_exists, create_database
+from sqlalchemy.exc import OperationalError
 
 db_url = URL.create(
     "postgresql+psycopg2",
@@ -19,10 +21,20 @@ def check_db_exist():
 
 
 def get_db_engine():
-    if not check_db_exist():
-        create_database(db_url)
+    for _ in range(10):
+        try:
+            if not check_db_exist():
+                create_database(db_url)
 
-    return create_engine(db_url)
+            engine = create_engine(db_url)
+            return engine
+        except OperationalError:
+            logger.warning("Connection to database failed. Retrying in 5 seconds...")
+            time.sleep(5)
+            continue
+    else:
+        logger.error("Connection to database failed. Exiting...")
+        raise SystemExit(1)
 
 
 engine = get_db_engine()
